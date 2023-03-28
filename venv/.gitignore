@@ -1,0 +1,33 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Local development settings
+.env
+venv/
+.vscode/
+
+# Build output
+build/
+dist/
+*.egg-info/
+
+# IDE-specific files
+.idea/
+
+# Jupyter Notebook-specific files
+.ipynb_checkpoints/
+
+# Other
+*.DS_Store
+*.log
+*.pot
+*.pyc
+*.swp
+*.swo
+*.bak
+*.orig
+*.rej
+*~
+
