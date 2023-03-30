@@ -46,13 +46,9 @@ def check_CIDR_match_network(user_CIDR, ip_address):  # Cheks if CIDR valid for 
         print("Enter only numbers between 1 and 32")
     else:
         network_class = calc_network_class(ip_address)
-        #print(network_class)
-        if 25 <= user_CIDR <= 31:
-            # print("True")
-            return True
 
         # If the network is class A CIDR should be from /8 to /1
-        elif user_CIDR <= 8 and network_class == "A":
+        if user_CIDR <= 8 and network_class == "A":
             # print("True")
             return True
 
@@ -132,13 +128,16 @@ def sub_calc():
     ip_address = input("Please enter an IP address: ")
     if ip_address:
         if check_ip(ip_address):
-            user_CIDR = int(input("Enter CIDR: "))
-            if user_CIDR:
-                # check if CIDR is right for the IP
-                if check_CIDR_match_network(user_CIDR, ip_address):
-                    cidr = user_CIDR
-                else:
-                    print("CIDR you entered is not valid for the IP you entered")
+            while True:
+                user_CIDR = int(input("Enter CIDR: "))
+                if user_CIDR:
+                 # check if CIDR is right for the IP
+                    if check_CIDR_match_network(user_CIDR, ip_address):
+                        cidr = user_CIDR
+                        break
+                    else:
+                        print("CIDR you entered is not valid for the IP you entered")
+
             else:
                 # calculate the CIDR by IP class
                 cidr = calc_CIDR(ip_address)
@@ -161,6 +160,12 @@ def sub_calc():
             if num_of_subnets and num_of_hosts:
                 print(f'Number of subnets for {ip_address} is {num_of_subnets}')
                 print(f'Number of hosts for {ip_address} is {num_of_hosts}')
+                #Subnet mask (in mask decimal format)
+                #Subnet in CIDR
+                #first subnet network address and its Broadcast
+                #second subnet network address and its Broadcast
+                #one before last subnet network address and its Broadcast
+                #last subnet network address and its Broadcast
         else:
             print("IP not valid")
             sub_calc()
@@ -171,3 +176,4 @@ def sub_calc():
 
 if __name__ == '__main__':
     sub_calc()
+
