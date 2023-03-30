@@ -1,4 +1,6 @@
+import math
 import re
+
 
 
 def check_ip(ip_str):  # Will return True or False  (verify – hint: regex)
@@ -67,21 +69,6 @@ def check_CIDR_match_network(user_CIDR, ip_address):  # Cheks if CIDR valid for 
 
 # check_CIDR_match_network(16, "192.168.0.1")
 
-"""Convert IP address to binary:
-The IP address is split into four octets using the dot (.) as a delimiter.
-For each octet, the "int" function is used to convert it into an integer.
-The "bin" function is then used to convert the integer into a binary string.
-The "[2:]" notation is used to remove the '0b' prefix that is added to the binary string by the "bin" function.
-The "zfill" function is used to pad the binary string with zeros so that it is 8 characters long.
-The resulting binary string for each octet is concatenated into a single string.
-The final binary string representing the IP address is returned by the function.
-"""
-
-
-def ip_to_binary(ip):
-    return ''.join([bin(int(octet))[2:].zfill(8) for octet in ip.split('.')])
-
-
 def calc_by_hosts(cidr, hosts_per_subnet):  # Should verify that input valid also
     hosts_per_subnet = int(hosts_per_subnet)
     # Calculate the maximum number of hosts for the given CIDR notation
@@ -123,24 +110,51 @@ def calc_by_subnet(cidr, num_subnets):  # Should verify that input valid also
         print("Number of subnets is not in range for this CIDR")
         return
 
+"""Convert IP address to binary:
+The IP address is split into four octets using the dot (.) as a delimiter.
+For each octet, the "int" function is used to convert it into an integer.
+The "bin" function is then used to convert the integer into a binary string.
+The "[2:]" notation is used to remove the '0b' prefix that is added to the binary string by the "bin" function.
+The "zfill" function is used to pad the binary string with zeros so that it is 8 characters long.
+The resulting binary string for each octet is concatenated into a single string.
+The final binary string representing the IP address is returned by the function.
+"""
 
+
+def ip_to_binary(ip):
+    return ''.join([bin(int(octet))[2:].zfill(8) for octet in ip.split('.')])
+def calc_subnet_mask(subnets_num):
+    subnet_bits = math.ceil(math.log2(subnets_num))
+    subnet_mask = '1' * subnet_bits + '0' * (32 - subnet_bits)
+    octets = [subnet_mask[i:i + 8] for i in range(0, 32, 8)] #returns a list of octets
+    #For each 8-bit string, the int() function is used to convert
+    # it from binary notation to an integer. The second argument
+    # to int() specifies the base of the input string, which is 2 for binary notation.
+    subnet_mask_decimal = [str(int(octet, 2)) for octet in octets]
+    subnet_mask = '.'.join(subnet_mask_decimal)
+    return subnet_mask
+
+#calc_subnet_mask(55)
 def sub_calc():
     ip_address = input("Please enter an IP address: ")
     if ip_address:
         if check_ip(ip_address):
             while True:
-                user_CIDR = int(input("Enter CIDR: "))
-                if user_CIDR:
-                 # check if CIDR is right for the IP
+                user_CIDR = input("Enter CIDR: ")
+                if not user_CIDR:
+                    # calculate the CIDR by IP class
+                    cidr = calc_CIDR(ip_address)
+                    print("Cidr" + str(cidr))
+                    break
+                else:
+                    user_CIDR = int(user_CIDR)
+                    # check if CIDR is right for the IP
                     if check_CIDR_match_network(user_CIDR, ip_address):
                         cidr = user_CIDR
                         break
                     else:
                         print("CIDR you entered is not valid for the IP you entered")
 
-            else:
-                # calculate the CIDR by IP class
-                cidr = calc_CIDR(ip_address)
 
             while True:
                 num_of_hosts_or_subnets = input(
@@ -161,6 +175,7 @@ def sub_calc():
                 print(f'Number of subnets for {ip_address} is {num_of_subnets}')
                 print(f'Number of hosts for {ip_address} is {num_of_hosts}')
                 #Subnet mask (in mask decimal format)
+                print(f'Subnet mask is {calc_subnet_mask(num_of_subnets)}')
                 #Subnet in CIDR
                 #first subnet network address and its Broadcast
                 #second subnet network address and its Broadcast
