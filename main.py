@@ -1,15 +1,21 @@
 import re
-def check_ip(ip_str): #Will return True or False  (verify – hint: regex)
-    return bool(re.match(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$', ip_str))
+
+
+def check_ip(ip_str):  # Will return True or False  (verify – hint: regex)
+    return bool(
+        re.match(r'^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$', ip_str))
+
+
 #check_ip("192.168.0.1")
 
-def check_CIDR(cidr):#Cheks if CIDR valid for given IP address
+def check_CIDR(cidr):  # Cheks if CIDR valid for given IP address
     if not cidr.isdigit() or not 0 <= cidr <= 32:
         print("Enter only numbers between 0 and 32")
     else:
         cidr = int(cidr)
 
-def calc_CIDR(ip_str):#Calculates the CIDR by class table and return the CIDR
+
+def calc_CIDR(ip_str):  # Calculates the CIDR by class table and return the CIDR
     ip_list = ip_str.split('.')
     first_octate = int(ip_list[0])
     print(first_octate)
@@ -24,7 +30,7 @@ def calc_CIDR(ip_str):#Calculates the CIDR by class table and return the CIDR
     return cidr
 
 
-#calc_CIDR("192.168.0.1")
+# calc_CIDR("192.168.0.1")
 
 
 """def calc_by_host()#Should verify that input valid also
