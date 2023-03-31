@@ -86,6 +86,23 @@ def calc_by_subnets(cidr, num_of_subnets):
 
 #calc_by_subnets(24, 4)
 
+def calc_by_hosts(cidr, num_of_hosts):
+    # Calculate the number of bits needed for the hosts
+    # bit_length() is a method in Python that returns the number of bits required to represent an integer in binary
+    num_bits = (num_of_hosts + 2).bit_length() - 1 # adding 2 to account for the network and broadcast addresses
+    new_CIDR = cidr + num_bits
+    # 0xffffffff is a 32-bit integer with all bits set to 1. This is a binary number that represents the largest possible IP address (255.255.255.255) in binary format.
+    # (0xffffffff << (32 - new_CIDR)) shifts the 1s in 0xffffffff to the left by (32 - new_CIDR) bits,
+    # effectively setting the first (32 - new_CIDR) bits of the 32-bit integer to 1, and the remaining bits to 0.
+    # This gives us the subnet mask in binary format.
+    new_subnet_mask = '.'.join([str((0xffffffff << (32 - new_CIDR) >> i) & 0xff) for i in [24, 16, 8, 0]])
+    num_subnets = 2 ** (32 - new_CIDR)
+    #print(f'new CIDR {new_CIDR}')
+    #print(f'new subnet mask {subnet_mask}')
+    #print(f'Number of subnets {num_subnets}')
+    return new_CIDR, new_subnet_mask, num_subnets
+
+#calc_by_hosts(24, 62)
 
 
 def sub_calc():
@@ -115,7 +132,7 @@ def sub_calc():
                     "Type 'hosts' for calculating by hosts or type 'subnets' for calculating by number of subnets: ").lower()
                 if num_of_hosts_or_subnets == "hosts":
                     hosts_per_subnet = int(input("Enter number of hosts: "))
-
+                    new_CIDR, new_subnet_mask, num_of_subnets = calc_by_hosts(cidr, hosts_per_subnet)
                     break
                 elif num_of_hosts_or_subnets == "subnets":
                     num_of_subnets = int(input("Enter number of subnets: "))
@@ -126,9 +143,10 @@ def sub_calc():
 
             if num_of_subnets and hosts_per_subnet:
                 print(f'Number of subnets for {ip_address} is {num_of_subnets}')
-                print(f'Number of hosts for {ip_address} is {hosts_per_subnet}')
-                print(f'Subnet mask is {new_subnet_mask}')
+                print(f'Number of hosts per subnet for {ip_address} is {hosts_per_subnet}')
+                print(f'new subnet mask is {new_subnet_mask}')
                 print(f'New CIDR is {new_CIDR}')
+
                 # first subnet network address and its Broadcast
                 # second subnet network address and its Broadcast
                 # one before last subnet network address and its Broadcast
@@ -143,3 +161,4 @@ def sub_calc():
 
 if __name__ == '__main__':
     sub_calc()
+
