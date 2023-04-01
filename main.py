@@ -104,6 +104,21 @@ def calc_by_hosts(cidr, num_of_hosts):
 
 #calc_by_hosts(24, 62)
 
+"""Convert IP address to binary:
+The IP address is split into four octets using the dot (.) as a delimiter.
+For each octet, the "int" function is used to convert it into an integer.
+The "bin" function is then used to convert the integer into a binary string.
+The "[2:]" notation is used to remove the '0b' prefix that is added to the binary string by the "bin" function.
+The "zfill" function is used to pad the binary string with zeros so that it is 8 characters long.
+The resulting binary string for each octet is concatenated into a single string.
+The final binary string representing the IP address is returned by the function.
+"""
+def ip_to_binary(ip):
+    binary_IP = ''.join([bin(int(octet))[2:].zfill(8) for octet in ip.split('.')])
+    #print(binary_IP)
+    return binary_IP
+
+#ip_to_binary("192.168.0.1")
 
 def sub_calc():
     ip_address = input("Please enter an IP address: ")
