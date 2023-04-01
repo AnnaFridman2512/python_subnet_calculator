@@ -113,12 +113,31 @@ The "zfill" function is used to pad the binary string with zeros so that it is 8
 The resulting binary string for each octet is concatenated into a single string.
 The final binary string representing the IP address is returned by the function.
 """
-def ip_to_binary(ip):
-    binary_IP = ''.join([bin(int(octet))[2:].zfill(8) for octet in ip.split('.')])
-    #print(binary_IP)
-    return binary_IP
+def mask_or_ip_to_binary(ip): #returns a list of octets in binary
+    binary_string = ''.join([bin(int(octet))[2:].zfill(8) for octet in ip.split('.')])
+    #print(binary_string)
+    octets = [binary_string[i:i + 8] for i in range(0, len(binary_string), 8)]
+    #print(octets)
+    return octets #Example ip_binary = ['11000000', '10101000', '00000001', '00000001']  # 192.168.1.1 in binary
 
-#ip_to_binary("192.168.0.1")
+#mask_or_ip_to_binary("255.255.255.255")
+
+def get_network_id(ip, subnet_mask):
+    ip_octets = mask_or_ip_to_binary(ip)
+    subnet_mask_octets = mask_or_ip_to_binary(subnet_mask)
+    #  By performing a bitwise AND operation between the binary representation of an IP address
+    #  and the binary representation of the subnet mask,
+    #  we can extract the network portion of the IP address.
+    # int(ip_octets[i], 2) converts the binary representation of an octet into an integer value
+    # that can be used in mathematical operations. By using base 2,
+    # we can convert the binary representation of an octet (e.g., '11000000') to its decimal equivalent (e.g., 192).
+    network_id_octets = [str(int(ip_octets[i], 2) & int(subnet_mask_octets[i], 2)) for i in range(4)]
+    # Join the octets into a dotted decimal notation
+    network_id = '.'.join(network_id_octets)
+    #print(network_id)
+    return network_id
+
+get_network_id("192.168.1.10", "255.255.255.255")
 
 def sub_calc():
     ip_address = input("Please enter an IP address: ")
