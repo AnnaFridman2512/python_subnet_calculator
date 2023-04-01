@@ -102,7 +102,7 @@ def calc_by_hosts(cidr, num_of_hosts):
     #print(f'Number of subnets {num_subnets}')
     return new_CIDR, new_subnet_mask, num_subnets
 
-#calc_by_hosts(24, 62)
+#calc_by_hosts(26, 62)
 
 """Convert IP address to binary:
 The IP address is split into four octets using the dot (.) as a delimiter.
@@ -113,8 +113,8 @@ The "zfill" function is used to pad the binary string with zeros so that it is 8
 The resulting binary string for each octet is concatenated into a single string.
 The final binary string representing the IP address is returned by the function.
 """
-def mask_or_ip_to_binary(ip): #returns a list of octets in binary
-    binary_string = ''.join([bin(int(octet))[2:].zfill(8) for octet in ip.split('.')])
+def mask_or_ip_to_binary(mask_or_ip): #returns a list of octets in binary
+    binary_string = ''.join([bin(int(octet))[2:].zfill(8) for octet in mask_or_ip.split('.')])
     #print(binary_string)
     octets = [binary_string[i:i + 8] for i in range(0, len(binary_string), 8)]
     #print(octets)
@@ -137,7 +137,47 @@ def get_network_id(ip, subnet_mask):
     #print(network_id)
     return network_id
 
-get_network_id("192.168.1.10", "255.255.255.255")
+#get_network_id("192.168.1.10", "255.255.255.255")
+
+def calculate_subnet_addresses_and_broadcasts(network_id, subnet_mask, num_subnets):
+    # Convert the IP address and subnet mask to binary strings
+    network_id_bin = ''.join([bin(int(x) + 256)[3:] for x in network_id.split('.')])
+    subnet_mask_bin = ''.join([bin(int(x) + 256)[3:] for x in subnet_mask.split('.')])
+
+    # Determine the number of bits in the subnet mask
+    num_mask_bits = subnet_mask_bin.count('1')
+
+    # Calculate the number of hosts per subnet
+    num_hosts_per_subnet = 2 ** (32 - num_mask_bits) - 2
+
+    # Calculate the block size for each subnet
+    block_size = num_hosts_per_subnet // num_subnets
+    if block_size <= 0 :
+        print("Cannot create subnets with the given parameters, Enter how many usable subnets only")
+        return
+    else:
+        # Calculate the new subnet mask
+        new_subnet_mask_bin = '1' * num_mask_bits + '0' * (32 - num_mask_bits)
+        new_subnet_mask_bin = new_subnet_mask_bin[:num_mask_bits + num_subnets.bit_length()]
+        new_subnet_mask = '.'.join([str(int(new_subnet_mask_bin[i:i + 8], 2)) for i in range(0, 32, 8)])
+
+        # Calculate the network ID, broadcast address, and usable IP address range for each subnet
+        subnets = []
+        for i in range(num_subnets):
+            subnet_network_id_bin = network_id_bin[:num_mask_bits] + bin(
+                i * block_size + int(network_id_bin[num_mask_bits:], 2))[2:].zfill(block_size.bit_length())
+            subnet_network_id = '.'.join([str(int(subnet_network_id_bin[i:i + 8], 2)) for i in range(0, 32, 8)])
+            subnet_broadcast_bin = subnet_network_id_bin[:num_mask_bits] + bin(
+                (i + 1) * block_size + int(network_id_bin[num_mask_bits:], 2))[2:].zfill(32 - num_mask_bits)
+
+            subnet_broadcast = '.'.join([str(int(subnet_broadcast_bin[i:i + 8], 2)) for i in range(0, 32, 8)])
+
+            subnets.append({'subnet_network_id': subnet_network_id, 'subnet_broadcast': subnet_broadcast})
+    #print(subnets)
+    return subnets
+
+#subnets = calculate_subnet_addresses_and_broadcasts('192.168.16.0', '255.255.255.0', 4)
+#print(subnets)
 
 def sub_calc():
     ip_address = input("Please enter an IP address: ")
@@ -163,7 +203,7 @@ def sub_calc():
 
             while True:
                 num_of_hosts_or_subnets = input(
-                    "Type 'hosts' for calculating by hosts or type 'subnets' for calculating by number of subnets: ").lower()
+                    "Type 'hosts' for calculating by hosts or type 'subnets' for calculating by number of usable subnets: ").lower()
                 if num_of_hosts_or_subnets == "hosts":
                     hosts_per_subnet = int(input("Enter number of hosts: "))
                     new_CIDR, new_subnet_mask, num_of_subnets = calc_by_hosts(cidr, hosts_per_subnet)
@@ -175,11 +215,30 @@ def sub_calc():
                 else:
                     print("Type only 'subnets' or 'hosts' ")
 
+
+            network_ID = get_network_id(ip_address, new_subnet_mask)
+            subnets_and_broadcasts = calculate_subnet_addresses_and_broadcasts(network_ID, new_subnet_mask, num_of_subnets)
+
             if num_of_subnets and hosts_per_subnet:
                 print(f'Number of subnets for {ip_address} is {num_of_subnets}')
                 print(f'Number of hosts per subnet for {ip_address} is {hosts_per_subnet}')
-                print(f'new subnet mask is {new_subnet_mask}')
+                print(f'New subnet mask is {new_subnet_mask}')
                 print(f'New CIDR is {new_CIDR}')
+                print(f'Network_ID (network address) is {network_ID}')
+                if len(subnets_and_broadcasts) == 1:
+                    print(f'There is only one subnet, subnets IP is {list(subnets_and_broadcasts[0].items())[0][1]}, the broadcast is {list(subnets_and_broadcasts[0].items())[1][1]}')
+                elif len(subnets_and_broadcasts) == 2:
+                    print(f'First subnet IP is {list(subnets_and_broadcasts[0].items())[0][1]}, the broadcast is {list(subnets_and_broadcasts[0].items())[1][1]}')
+                    print(f'Last subnet IP is {list(subnets_and_broadcasts[1].items())[0][1]}, the broadcast is {list(subnets_and_broadcasts[1].items())[1][1]}')
+                elif len(subnets_and_broadcasts) == 3:
+                    print(f'First subnet IP is {list(subnets_and_broadcasts[0].items())[0][1]}, the broadcast is {list(subnets_and_broadcasts[0].items())[1][1]}')
+                    print(f'Second subnet IP is {list(subnets_and_broadcasts[1].items())[0][1]}, the broadcast is {list(subnets_and_broadcasts[1].items())[1][1]}')
+                    print(f'Last subnet IP is {list(subnets_and_broadcasts[-1].items())[0][1]}, the broadcast is {list(subnets_and_broadcasts[-1].items())[1][1]}')
+                else:
+                    print(f'First subnet IP is {list(subnets_and_broadcasts[0].items())[0][1]}, the broadcast is {list(subnets_and_broadcasts[0].items())[1][1]}')
+                    print(f'Second subnet IP is {list(subnets_and_broadcasts[1].items())[0][1]}, the broadcast is {list(subnets_and_broadcasts[1].items())[1][1]}')
+                    print(f'One before Last subnet IP is {list(subnets_and_broadcasts[-2].items())[0][1]}, the broadcast is {list(subnets_and_broadcasts[-2].items())[1][1]}')
+                    print(f'Last subnet IP is {list(subnets_and_broadcasts[-1].items())[0][1]}, the broadcast is {list(subnets_and_broadcasts[-1].items())[1][1]}')
 
                 # first subnet network address and its Broadcast
                 # second subnet network address and its Broadcast
